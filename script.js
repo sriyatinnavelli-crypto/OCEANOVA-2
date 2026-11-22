@@ -347,7 +347,6 @@
         `;
         fragment.appendChild(zoneDiv);
       });
-    }
 
     // 2. Render Specimen Cards
     creatures.forEach(item => {
