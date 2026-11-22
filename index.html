@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oceanova — Beyond the Blue</title>
+  <meta name="description" content="Oceanova — Beyond the Blue. An interactive deep sea descent to 10,928 meters.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Outfit:wght@700;800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Ambient Canvas for Marine Snow, Bubbles, and Caustics -->
+  <canvas id="ambient-canvas"></canvas>
+
+  <!-- Sticky Top Navigation / Depth Telemetry HUD -->
+  <header id="hud" class="hud">
+    <div class="hud-left">
+      <div class="logo-group">
+        <span class="ocean-wave-icon">🌊</span>
+        <div class="title-wrap">
+          <h1 class="hud-title" id="project-title">OCEANOVA</h1>
+          <span class="hud-subtitle">Beyond the Blue • Sriya Vaishnavi Tinnavelli</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-center">
+      <div class="depth-counter-box">
+        <div class="depth-meters">
+          <span id="current-depth-val">0</span>
+          <span class="depth-unit" id="primary-unit">m</span>
+        </div>
+        <div class="depth-secondary" id="secondary-depth-wrap">
+          <span id="current-feet-val">0</span> ft
+        </div>
+      </div>
+      <div class="zone-badge" id="hud-zone-badge">
+        <span class="zone-dot"></span>
+        <span id="hud-zone-name">SUNLIGHT ZONE</span>
+      </div>
+    </div>
+
+    <div class="hud-right">
+      <!-- Environmental Telemetry -->
+      <div class="telemetry-pill">
+        <div class="telemetry-item" title="Hydrostatic Water Pressure">
+          <span class="telem-label">PRESSURE</span>
+          <span class="telem-val" id="telem-pressure">1.0 atm</span>
+        </div>
+        <div class="telemetry-item" title="Water Temperature">
+          <span class="telem-label">TEMP</span>
+          <span class="telem-val" id="telem-temp">24.0°C</span>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="hud-controls">
+        <button id="btn-sound" class="hud-btn" title="Toggle Ambient Ocean Audio">
+          <span class="btn-icon">🔇</span>
+          <span class="btn-text">Audio</span>
+        </button>
+
+        <button id="btn-autodive" class="hud-btn" title="Auto Dive Downwards">
+          <span class="btn-icon">▶️</span>
+          <span class="btn-text" id="autodive-label">Auto Dive</span>
+        </button>
+
+        <div class="speed-selector" id="speed-controls" style="display: none;">
+          <button class="speed-btn active" data-speed="2">2x</button>
+          <button class="speed-btn" data-speed="6">6x</button>
+          <button class="speed-btn" data-speed="15">15x</button>
+          <button class="speed-btn" data-speed="35">35x</button>
+        </div>
+
+        <button id="btn-jump" class="hud-btn" title="Quick Jump to Ocean Zone">
+          <span class="btn-icon">⚓</span>
+          <span class="btn-text">Jump</span>
+        </button>
+
+        <button id="btn-creator" class="hud-btn btn-primary" title="Modify Database & Add Custom Markers">
+          <span class="btn-icon">🛠️</span>
+          <span class="btn-text">Studio</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Quick Jump Dropdown Menu -->
+  <div id="jump-menu" class="jump-menu hidden">
+    <div class="jump-menu-header">
+      <span>Jump to Ocean Layer</span>
+      <button id="jump-menu-close" class="close-x">&times;</button>
+    </div>
+    <div class="jump-menu-list">
+      <button class="jump-item" data-depth="0">
+        <span class="jump-zone-tag epipelagic">0m</span>
+        <span class="jump-name">Surface / Sunlight Zone</span>
+      </button>
+      <button class="jump-item" data-depth="200">
+        <span class="jump-zone-tag mesopelagic">200m</span>
+        <span class="jump-name">The Twilight Zone</span>
+      </button>
+      <button class="jump-item" data-depth="332">
+        <span class="jump-zone-tag mesopelagic">332m</span>
+        <span class="jump-name">World Record Scuba Dive</span>
+      </button>
+      <button class="jump-item" data-depth="828">
+        <span class="jump-zone-tag mesopelagic">828m</span>
+        <span class="jump-name">Burj Khalifa Height</span>
+      </button>
+      <button class="jump-item" data-depth="1000">
+        <span class="jump-zone-tag bathypelagic">1,000m</span>
+        <span class="jump-name">The Midnight Zone</span>
+      </button>
+      <button class="jump-item" data-depth="1024">
+        <span class="jump-zone-tag bathypelagic">1,024m</span>
+        <span class="jump-name">Humpback Anglerfish</span>
+      </button>
+      <button class="jump-item" data-depth="3800">
+        <span class="jump-zone-tag bathypelagic">3,800m</span>
+        <span class="jump-name">Wreck of the RMS Titanic</span>
+      </button>
+      <button class="jump-item" data-depth="4000">
+        <span class="jump-zone-tag abyssopelagic">4,000m</span>
+        <span class="jump-name">The Abyssal Zone</span>
+      </button>
+      <button class="jump-item" data-depth="4800">
+        <span class="jump-zone-tag abyssopelagic">4,800m</span>
+        <span class="jump-name">Dumbo Octopus</span>
+      </button>
+      <button class="jump-item" data-depth="6000">
+        <span class="jump-zone-tag hadalpelagic">6,000m</span>
+        <span class="jump-name">The Hadal Zone (Trenches)</span>
+      </button>
+      <button class="jump-item" data-depth="8376">
+        <span class="jump-zone-tag hadalpelagic">8,376m</span>
+        <span class="jump-name">Mariana Snailfish (Deepest Fish)</span>
+      </button>
+      <button class="jump-item" data-depth="10928">
+        <span class="jump-zone-tag hadalpelagic">10,928m</span>
+        <span class="jump-name">Challenger Deep (Bottom)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Ocean Descent Scroll Container -->
+  <main id="ocean-container" class="ocean-container">
+    <!-- Left Vertical Depth Ruler -->
+    <div id="depth-ruler" class="depth-ruler"></div>
+
+    <!-- Surface Header at 0m -->
+    <section class="surface-hero" id="surface-hero">
+      <div class="surface-sky">
+        <div class="sun-glimmer"></div>
+        <div class="clouds"></div>
+      </div>
+      <div class="surface-waves">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" class="wave-svg">
+          <path d="M0,0 C150,90 350,-40 500,45 C650,130 900,-20 1200,30 L1200,120 L0,120 Z" fill="#29b6f6" opacity="0.6"></path>
+          <path d="M0,20 C200,100 450,10 700,60 C950,110 1050,30 1200,50 L1200,120 L0,120 Z" fill="#0288d1" opacity="0.8"></path>
+          <path d="M0,45 C300,120 600,30 900,80 C1050,100 1150,60 1200,70 L1200,120 L0,120 Z" fill="#01579b"></path>
+        </svg>
+      </div>
+      <div class="hero-content">
+        <div class="expedition-badge">
+          <span>⚓</span>
+          <span>Ocean Expedition Lead • Sriya Vaishnavi Tinnavelli</span>
+        </div>
+        <h2 class="hero-title">OCEANOVA</h2>
+        <div class="hero-tagline">Beyond the Blue</div>
+        <p class="hero-intro">
+          Scroll down to dive beneath the surface. Discover the creatures, records, and mysteries 
+          waiting across 11,000 vertical meters of the world ocean.
+        </p>
+        <div class="scroll-instruction">
+          <span class="mouse-icon">🖱️</span>
+          <span>Scroll down to begin your descent</span>
+          <span class="down-arrow">↓</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Content Stream of Zones & Specimens dynamically populated -->
+    <div id="descent-stream" class="descent-stream"></div>
+
+    <!-- Ocean Floor / Challenger Deep Finale at 10,928m -->
+    <section id="seabed-floor" class="seabed-floor">
+      <div class="trench-walls left"></div>
+      <div class="trench-walls right"></div>
+      
+      <div class="seabed-surface">
+        <div class="seabed-sands"></div>
+        <div class="seabed-rocks"></div>
+      </div>
+
+      <div class="seabed-content">
+        <div class="trench-trophy">🏆</div>
+        <h2 class="seabed-title">CHALLENGER DEEP</h2>
+        <div class="seabed-depth-badge">10,928 METERS / 35,853 FEET</div>
+        <div class="seabed-explorer-certificate">
+          🎖️ Commemorative Expedition Plaque: <br>
+          <strong>Sriya Vaishnavi Tinnavelli</strong> has reached the deepest point on Earth.
+        </div>
+        <p class="seabed-desc">
+          You have reached the very bottom of the planet's ocean in the Mariana Trench. 
+          The water pressure here is over 1,000 atmospheres — equal to the weight of an elephant balanced on a single postage stamp. 
+          Very few human beings in history have ever visited this alien underworld.
+        </p>
+        <div class="seabed-actions">
+          <button id="btn-back-to-surface" class="seabed-btn">
+            ⬆️ Return to the Surface
+          </button>
+          <button id="btn-customize-seabed" class="seabed-btn secondary">
+            🛠️ Add Your Own Specimen Here
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Specimen Detail Modal / Field Dossier -->
+  <div id="specimen-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog">
+      <button class="modal-close" id="modal-close-btn">&times;</button>
+      <div class="modal-body" id="modal-content">
+        <!-- Dynamically injected -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Creator Studio & Customization Drawer/Modal -->
+  <div id="creator-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog modal-large">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="studio-icon">🛠️</span>
+          <div>
+            <h2 class="modal-title">Creator Studio</h2>
+            <p class="modal-subtitle">Modify specimens, add custom markers, or customize depths and facts for yourself</p>
+          </div>
+        </div>
+        <button class="modal-close" id="creator-close-btn">&times;</button>
+      </div>
+
+      <div class="creator-tabs">
+        <button class="tab-btn active" data-tab="tab-add">➕ Add / Edit Specimen</button>
+        <button class="tab-btn" data-tab="tab-list">📋 Manage Database (<span id="total-specimens-count">0</span>)</button>
+        <button class="tab-btn" data-tab="tab-export">💾 Import / Export JSON</button>
+        <button class="tab-btn" data-tab="tab-settings">🎨 Display Settings</button>
+      </div>
+
+      <div class="creator-tab-content">
+        <!-- TAB 1: ADD / EDIT FORM -->
+        <div id="tab-add" class="tab-pane active">
+          <form id="creature-form" class="studio-form">
+            <input type="hidden" id="form-edit-id" value="">
+            
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="form-name">Name / Title *</label>
+                <input type="text" id="form-name" required placeholder="e.g. Colossal Squid, Underwater Research Base">
+              </div>
+              <div class="form-group flex-1">
+                <label for="form-depth">Depth (Meters) *</label>
+                <input type="number" id="form-depth" required min="0" max="11000" placeholder="e.g. 1500">
+              </div>
+              <div class="form-group flex-1">
+                <label for="form-category">Category</label>
+                <select id="form-category">
+                  <option value="creature">Creature</option>
+                  <option value="milestone">Milestone / Record</option>
+                  <option value="submersible">Submersible</option>
+                  <option value="landmark">Landmark / Comparison</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="form-sci-name">Scientific Name / Subtitle</label>
+                <input type="text" id="form-sci-name" placeholder="e.g. Mesonychoteuthis hamiltoni">
+              </div>
+              <div class="form-group flex-1">
+                <label for="form-size">Size / Dimensions</label>
+                <input type="text" id="form-size" placeholder="e.g. 10 - 12 meters, 500 kg">
+              </div>
+              <div class="form-group flex-1">
+                <label for="form-align">Alignment</label>
+                <select id="form-align">
+                  <option value="left">Left Side</option>
+                  <option value="right">Right Side</option>
+                  <option value="center">Centered</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="form-desc">Description</label>
+              <textarea id="form-desc" rows="2" placeholder="Brief summary of this creature or milestone..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="form-fact">Fascinating Fact / Note</label>
+              <textarea id="form-fact" rows="2" placeholder="An amazing fact that will captivate anyone scrolling past..."></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="form-icon">Emoji / Icon</label>
+                <input type="text" id="form-icon" placeholder="e.g. 🦑 or 🚢">
+              </div>
+              <div class="form-group flex-3">
+                <label for="form-svg">Custom SVG Markup or Image URL (Optional)</label>
+                <input type="text" id="form-svg" placeholder="Paste custom SVG code or image URL (https://...)">
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-submit" id="btn-save-creature">
+                💾 Save to Deep Sea
+              </button>
+              <button type="button" class="btn-secondary" id="btn-cancel-edit" style="display:none;">
+                Cancel Editing
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- TAB 2: MANAGE SPECIMENS LIST -->
+        <div id="tab-list" class="tab-pane">
+          <div class="list-toolbar">
+            <input type="text" id="search-specimens" placeholder="🔍 Filter specimens by name or depth..." class="search-input">
+            <button id="btn-sort-depth" class="btn-sm">Sort by Depth ↓</button>
+          </div>
+          <div class="specimens-table-wrap">
+            <table class="specimens-table">
+              <thead>
+                <tr>
+                  <th>Depth</th>
+                  <th>Icon</th>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="specimens-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 3: IMPORT / EXPORT -->
+        <div id="tab-export" class="tab-pane">
+          <div class="export-box">
+            <h3>Export Database</h3>
+            <p>Export all creatures and markers to JSON so you can save them permanently to your project files or share them.</p>
+            <div class="export-btn-group">
+              <button id="btn-download-json" class="btn-primary">⬇️ Download creatures.json</button>
+              <button id="btn-copy-json" class="btn-secondary">📋 Copy JSON to Clipboard</button>
+            </div>
+          </div>
+
+          <div class="export-box" style="margin-top: 20px;">
+            <h3>Import Database</h3>
+            <p>Paste custom JSON or upload a `creatures.json` file to replace or update the specimens.</p>
+            <textarea id="import-json-area" rows="6" placeholder="Paste valid creatures JSON array here..."></textarea>
+            <div class="export-btn-group">
+              <button id="btn-apply-json" class="btn-primary">Apply JSON</button>
+              <button id="btn-reset-default" class="btn-danger">🔄 Reset to Neal.fun Defaults</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: SETTINGS & APPEARANCE -->
+        <div id="tab-settings" class="tab-pane">
+          <div class="settings-grid">
+            <div class="setting-card">
+              <label class="setting-label">Project Title</label>
+              <input type="text" id="setting-title" value="OCEANOVA" class="setting-input">
+              <p class="setting-hint">Customize the title displayed in the top HUD.</p>
+            </div>
+
+            <div class="setting-card">
+              <label class="setting-label">Title Font Style</label>
+              <select id="setting-font" class="setting-input">
+                <option value="cinzel">Cinzel (Nautical & Majestic Expedition)</option>
+                <option value="outfit">Outfit (Bold Modern Geometric)</option>
+                <option value="playfair">Playfair Display (Maritime Editorial)</option>
+                <option value="jakarta">Plus Jakarta Sans (Clean Minimalist)</option>
+              </select>
+              <p class="setting-hint">Select the typography for 'The Deep Sea' heading.</p>
+            </div>
+
+            <div class="setting-card">
+              <label class="setting-label">Depth Units</label>
+              <select id="setting-unit" class="setting-input">
+                <option value="meters">Meters (Primary) / Feet (Secondary)</option>
+                <option value="feet">Feet (Primary) / Meters (Secondary)</option>
+              </select>
+            </div>
+
+            <div class="setting-card">
+              <label class="setting-label">Descent Scale (Vertical Height)</label>
+              <select id="setting-scale" class="setting-input">
+                <option value="10">Standard (10px per meter — ~110,000px height)</option>
+                <option value="5">Compact (5px per meter — ~55,000px height)</option>
+                <option value="16">Expansive (16px per meter — ~176,000px height)</option>
+              </select>
+              <p class="setting-hint">Controls how many scroll pixels each meter corresponds to.</p>
+            </div>
+
+            <div class="setting-card">
+              <label class="setting-label">Ambient Marine Snow & Bubbles</label>
+              <select id="setting-particles" class="setting-input">
+                <option value="on">Enabled (Floating particles & bubbles)</option>
+                <option value="off">Disabled (Clean background)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions" style="margin-top: 20px;">
+            <button id="btn-save-settings" class="btn-primary">💾 Save Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="data/creatures.js"></script>
+  <script src="creatures.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
